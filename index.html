@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Дошка завдань</title>
-<link rel="preconnect" href="https://googleapis.com">
-<link href="https://googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* Оновлена палітра: темно-фіолетові відтінки */
     --bg-linear: linear-gradient(135deg, #0f0c1b 0%, #1a102f 50%, #0a0618 100%);
     --surface:#171126;
     --surface-2:#221a36;
@@ -58,7 +57,7 @@
     appearance:none; -webkit-appearance:none;
     background:var(--surface); border:1px solid var(--line); border-radius:8px;
     padding:8px 32px 8px 12px; font-size:13.5px; color:var(--ink); font-weight:600;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 20 20'%3E%3Cpath fill='%239AA097' d='M5 7l5 6 5-6z'/%3E%3C/svg%3E");
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%239AA097' d='M5 7l5 6 5-6z'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;
   }
   .toolbar select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
@@ -198,6 +197,262 @@
       <div class="field full">
         <label>Опис (необов'язково)</label>
         <textarea id="form-desc" placeholder="Додайте деталі або нотатки..."></textarea>
+      </div>
+      <div class="field">
+        <label>Кінцевий термін *</label>
+        <input type="date" id="form-date" required>
+      </div>
+      <div class="field">
+        <label>Пріоритет</label>
+        <div class="priority-picker">
+          <div class="priority-opt" data-level="low" data-active="true">Низький</div>
+          <div class="priority-opt" data-level="medium" data-active="false">Середній</div>
+          <div class="priority-opt" data-level="high" data-active="false">Високий</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="cancel-form-btn">Скасувати</button>
+      <button type="submit" class="btn btn-primary" id="submit-form-btn">Зберегти</button>
+    </div>
+  </form>
 
-  
+  <div class="list" id="task-list"></div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem('checklist_tasks')) || [];
+  let currentPriority = 'low';
+
+  const taskList = document.getElementById('task-list');
+  const taskForm = document.getElementById('task-form');
+  const toggleFormBtn = document.getElementById('toggle-form-btn');
+  const cancelFormBtn = document.getElementById('cancel-form-btn');
+  const submitFormBtn = document.getElementById('submit-form-btn');
+  const taskCounter = document.getElementById('task-counter');
+  const formError = document.getElementById('form-error');
+
+  const formTitle = document.getElementById('form-title');
+  const formDesc = document.getElementById('form-desc');
+  const formDate = document.getElementById('form-date');
+  const editTaskId = document.getElementById('edit-task-id');
+  const priorityOpts = document.querySelectorAll('.priority-opt');
+
+  const filterStatus = document.getElementById('filter-status');
+  const sortBy = document.getElementById('sort-by');
+
+  formDate.value = new Date().toISOString().split('T')[0];
+
+  priorityOpts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      priorityOpts.forEach(o => o.setAttribute('data-active', 'false'));
+      opt.setAttribute('data-active', 'true');
+      currentPriority = opt.getAttribute('data-level');
+    });
+  });
+
+  function setPriorityInForm(level) {
+    priorityOpts.forEach(o => {
+      if(o.getAttribute('data-level') === level) {
+        o.setAttribute('data-active', 'true');
+        currentPriority = level;
+      } else {
+        o.setAttribute('data-active', 'false');
+      }
+    });
+  }
+
+  toggleFormBtn.addEventListener('click', () => {
+    taskForm.classList.toggle('is-visible');
+    if(taskForm.classList.contains('is-visible')) {
+      resetForm();
+    }
+  });
+
+  cancelFormBtn.addEventListener('click', () => {
+    taskForm.classList.remove('is-visible');
+    resetForm();
+  });
+
+  function resetForm() {
+    formTitle.value = '';
+    formDesc.value = '';
+    formDate.value = new Date().toISOString().split('T')[0];
+    editTaskId.value = '';
+    setPriorityInForm('low');
+    submitFormBtn.innerText = 'Зберегти';
+    formError.classList.remove('is-visible');
+  }
+
+  function saveToLocalStorage() {
+    localStorage.setItem('checklist_tasks', JSON.stringify(tasks));
+    updateCounter();
+  }
+
+  function updateCounter() {
+    const activeTasks = tasks.filter(t => !t.done).length;
+    taskCounter.innerText = `Завдань залишилось: ${activeTasks}`;
+  }
+
+  taskForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!formTitle.value.trim() || !formDate.value) {
+      formError.classList.add('is-visible');
+      return;
+    }
+    formError.classList.remove('is-visible');
+
+    if (editTaskId.value) {
+      const taskIndex = tasks.findIndex(t => t.id === editTaskId.value);
+      if (taskIndex !== -1) {
+        tasks[taskIndex].title = formTitle.value.trim();
+        tasks[taskIndex].desc = formDesc.value.trim();
+        tasks[taskIndex].date = formDate.value;
+        tasks[taskIndex].priority = currentPriority;
+      }
+    } else {
+      const newTask = {
+        id: Date.now().toString(),
+        title: formTitle.value.trim(),
+        desc: formDesc.value.trim(),
+        date: formDate.value,
+        priority: currentPriority,
+        done: false
+      };
+      tasks.push(newTask);
+    }
+
+    saveToLocalStorage();
+    resetForm();
+    taskForm.classList.remove('is-visible');
+    renderTasks();
+  });
+
+  function getDueState(dateStr, isDone) {
+    if (isDone) return { text: 'Виконано', state: 'done' };
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0,0,0,0);
+
+    const diffTime = targetDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return { text: 'Прострочено', state: 'overdue' };
+    if (diffDays === 0) return { text: 'Сьогодні', state: 'today' };
+    if (diffDays === 1) return { text: 'Завтра', state: 'ok' };
+    
+    let dayWord = 'днів';
+    const lastDigit = diffDays % 10;
+    const lastTwoDigits = diffDays % 100;
+
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+      dayWord = 'день';
+    } else if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) {
+      dayWord = 'дні';
+    }
+
+    return { text: `Залишилось ${diffDays} ${dayWord}`, state: 'ok' };
+  }
+
+  const priorityLabels = { low: 'Низький', medium: 'Середній', high: 'Високий' };
+
+  function renderTasks() {
+    taskList.innerHTML = '';
+
+    let filteredTasks = tasks.filter(task => {
+      if (filterStatus.value === 'active') return !task.done;
+      if (filterStatus.value === 'done') return task.done;
+      return true;
+    });
+
+    filteredTasks.sort((a, b) => {
+      if (sortBy.value === 'date-asc') return new Date(a.date) - new Date(b.date);
+      if (sortBy.value === 'date-desc') return new Date(b.date) - new Date(a.date);
+      if (sortBy.value === 'priority-desc') {
+        const priorityWeight = { high: 3, medium: 2, low: 1 };
+        return priorityWeight[b.priority] - priorityWeight[a.priority];
+      }
+      return 0;
+    });
+
+    if (filteredTasks.length === 0) {
+      taskList.innerHTML = `<div class="empty">Наразі немає завдань у цій категорії. Натисніть "+ Нове завдання", щоб додати.</div>`;
+      return;
+    }
+
+    filteredTasks.forEach(task => {
+      const dueInfo = getDueState(task.date, task.done);
+      
+      const card = document.createElement('div');
+      card.className = `task-card ${task.done ? 'is-done' : ''}`;
+      card.setAttribute('data-priority', task.priority);
+
+      card.innerHTML = `
+        <input type="checkbox" class="check" ${task.done ? 'checked' : ''}>
+        <div class="task-main">
+          <div class="task-top">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+          </div>
+          ${task.desc ? `<div class="task-desc">${escapeHtml(task.desc)}</div>` : ''}
+          <div class="task-meta">
+            <span class="chip chip-priority" data-level="${task.priority}">${priorityLabels[task.priority]}</span>
+            <span class="chip chip-date">${formatDate(task.date)}</span>
+            <span class="chip chip-due" data-state="${dueInfo.state}">${dueInfo.text}</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="btn-text edit-btn">Редагувати</button>
+          <button class="btn-danger-text delete-btn">Видалити</button>
+        </div>
+      `;
+
+      const checkbox = card.querySelector('.check');
+      checkbox.addEventListener('change', () => {
+        task.done = checkbox.checked;
+        saveToLocalStorage();
+        renderTasks();
+      });
+
+      card.querySelector('.delete-btn').addEventListener('click', () => {
+        tasks = tasks.filter(t => t.id !== task.id);
+        saveToLocalStorage();
+        renderTasks();
+      });
+
+      card.querySelector('.edit-btn').addEventListener('click', () => {
+        taskForm.classList.add('is-visible');
+        editTaskId.value = task.id;
+        formTitle.value = task.title;
+        formDesc.value = task.desc;
+        formDate.value = task.date;
+        setPriorityInForm(task.priority);
+        submitFormBtn.innerText = 'Оновити завдання';
+        window.scrollTo({ top: taskForm.offsetTop - 20, behavior: 'smooth' });
+      });
+
+      taskList.appendChild(card);
+    });
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    if(isNaN(d)) return dateStr;
+    return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  filterStatus.addEventListener('change', renderTasks);
+  sortBy.addEventListener('change', renderTasks);
+
+  updateCounter();
+  renderTasks();
 </script>
+</body>
+</html>
