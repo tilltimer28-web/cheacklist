@@ -4,32 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Дошка завдань</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://googleapis.com">
+<link href="https://googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#121412;
-    --surface:#1B1D1B;
-    --surface-2:#212320;
+    /* Оновлена палітра: темно-фіолетові відтінки */
+    --bg-linear: linear-gradient(135deg, #0f0c1b 0%, #1a102f 50%, #0a0618 100%);
+    --surface:#171126;
+    --surface-2:#221a36;
     --ink:#ECEEEC;
-    --ink-dim:#9AA097;
-    --ink-faint:#6B716C;
-    --line:#2C2F2C;
-    --line-soft:#252825;
-    --accent:#6C93D6;
-    --accent-ink:#0F1210;
+    --ink-dim:#A59CB5;
+    --ink-faint:#766D85;
+    --line:#2E2445;
+    --line-soft:#281F3D;
+    --accent:#9B86FA;
+    --accent-ink:#0A0618;
     --low:#57B788;
     --med:#E0A83E;
     --high:#E2645A;
-    --radius:10px;
-    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.55);
+    --radius:12px;
+    --shadow:0 4px 20px rgba(0,0,0,.4), 0 8px 32px -12px rgba(11,6,24,.6);
     font-size:16px;
   }
   *,*::before,*::after{ box-sizing:border-box; }
   body{
-    margin:0; background:var(--bg); color:var(--ink);
+    margin:0; background: var(--bg-linear); color:var(--ink);
     font-family:'Inter',sans-serif; line-height:1.5;
-    min-height:100vh;
+    min-height:100vh; background-attachment: fixed;
   }
   .heading, h1, h2, .btn, .chip, .field label, .toolbar select, .toolbar-label{
     font-family:'Space Grotesk',sans-serif;
@@ -38,7 +39,7 @@
 
   /* ---------- Header ---------- */
   header{ display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:8px; flex-wrap:wrap; }
-  h1{ font-size:30px; font-weight:700; letter-spacing:-.01em; margin:0; }
+  h1{ font-size:30px; font-weight:700; letter-spacing:-.01em; margin:0; color: #fff; text-shadow: 0 2px 10px rgba(155,134,250,0.2); }
   .subtitle{ color:var(--ink-dim); font-size:14px; margin-top:6px; }
   .count-pill{
     font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:600;
@@ -57,12 +58,10 @@
     appearance:none; -webkit-appearance:none;
     background:var(--surface); border:1px solid var(--line); border-radius:8px;
     padding:8px 32px 8px 12px; font-size:13.5px; color:var(--ink); font-weight:600;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%239AA097' d='M5 7l5 6 5-6z'/%3E%3C/svg%3E");
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 20 20'%3E%3Cpath fill='%239AA097' d='M5 7l5 6 5-6z'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;
   }
   .toolbar select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  .toggle{ display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink-dim); cursor:pointer; user-select:none; }
-  .toggle input{ accent-color:var(--accent); width:15px; height:15px; cursor:pointer; }
 
   .btn{
     font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;
@@ -70,20 +69,21 @@
     display:inline-flex; align-items:center; gap:6px; transition:transform .15s ease, background .15s ease, border-color .15s ease;
   }
   .btn:active{ transform:scale(.97); }
-  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
-  .btn-primary:hover{ background:#83A5DE; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); box-shadow: 0 4px 12px rgba(155,134,250,0.3); }
+  .btn-primary:hover{ background:#b3a3ff; }
   .btn-ghost{ background:transparent; color:var(--ink-dim); border-color:var(--line); }
   .btn-ghost:hover{ border-color:var(--ink-faint); color:var(--ink); }
-  .btn-text{ background:none; color:var(--ink-dim); padding:6px 8px; font-size:13px; }
+  .btn-text{ background:none; color:var(--ink-dim); padding:6px 8px; font-size:13px; border:none; cursor:pointer;}
   .btn-text:hover{ color:var(--ink); }
-  .btn-danger-text{ background:none; color:var(--high); padding:6px 8px; font-size:13px; }
+  .btn-danger-text{ background:none; color:var(--high); padding:6px 8px; font-size:13px; border:none; cursor:pointer;}
   .btn-danger-text:hover{ text-decoration:underline; }
 
   /* ---------- Add / Edit form ---------- */
   .task-form{
     background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    padding:20px; margin-bottom:16px; box-shadow:var(--shadow);
+    padding:20px; margin-bottom:16px; box-shadow:var(--shadow); display:none;
   }
+  .task-form.is-visible{ display:block; }
   .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   .field{ margin-bottom:14px; }
   .field.full{ grid-column:1 / -1; }
@@ -95,13 +95,13 @@
   }
   .field textarea{ resize:vertical; min-height:64px; }
   .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible{
-    outline:none; border-color:var(--accent); background:#242724;
+    outline:none; border-color:var(--accent); background:#292040;
   }
   .priority-picker{ display:flex; gap:8px; }
   .priority-opt{
     flex:1; text-align:center; padding:9px 6px; border-radius:7px; border:1px solid var(--line);
     background:var(--surface-2); font-size:12.5px; font-weight:600; cursor:pointer;
-    color:var(--ink-dim); transition:all .15s ease;
+    color:var(--ink-dim); transition:all .15s ease; user-select:none;
   }
   .priority-opt[data-active="true"][data-level="low"]{ background:rgba(87,183,136,.16); border-color:var(--low); color:var(--low); }
   .priority-opt[data-active="true"][data-level="medium"]{ background:rgba(224,168,62,.16); border-color:var(--med); color:var(--med); }
@@ -121,7 +121,7 @@
   .task-card[data-priority="low"]{ border-left-color:var(--low); }
   .task-card[data-priority="medium"]{ border-left-color:var(--med); }
   .task-card[data-priority="high"]{ border-left-color:var(--high); }
-  .task-card.is-done{ opacity:.55; }
+  .task-card.is-done { opacity:.45; }
   .task-card.is-done .task-title{ text-decoration:line-through; color:var(--ink-dim); }
 
   .check{
@@ -147,20 +147,10 @@
 
   .task-actions{ display:flex; gap:2px; flex:0 0 auto; }
 
-  /* ---------- Empty / loading states ---------- */
+  /* ---------- Empty state ---------- */
   .empty{
     text-align:center; padding:60px 20px; color:var(--ink-dim);
-    background:var(--surface); border:1px dashed var(--line); border-radius:var(--radius);
-  }
-  .empty strong{ display:block; color:var(--ink); font-size:16px; margin-bottom:6px; font-family:'Space Grotesk',sans-serif; }
-  .status-line{ text-align:center; color:var(--ink-faint); font-size:13px; padding:24px; }
-
-  footer{ text-align:center; margin-top:36px; }
-
-  @media (max-width:560px){
-    .form-grid{ grid-template-columns:1fr; }
-    .task-top{ flex-direction:column; }
-    .task-actions{ align-self:flex-end; }
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
   }
 </style>
 </head>
@@ -169,385 +159,45 @@
 <div class="wrap">
   <header>
     <div>
-      <h1>Листок з завданнями</h1>
-      <div class="subtitle">Картки зберігаються на цьому пристрої — додавайте, редагуйте та відмічайте виконане.</div>
+      <h1>Дошка завдань</h1>
+      <div class="subtitle">Ваш персональний менеджер списків та справ</div>
     </div>
-    <span class="count-pill" id="countPill">0 завдань</span>
+    <div class="count-pill" id="task-counter">Завдань: 0</div>
   </header>
 
+  <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-left">
-      <span class="toolbar-label">Сортування</span>
-      <select id="sortSelect">
-        <option value="deadline">За дедлайном</option>
-        <option value="priority">За пріоритетом</option>
-        <option value="created">За датою додавання</option>
+      <span class="toolbar-label">Фільтр</span>
+      <select id="filter-status">
+        <option value="all">Усі завдання</option>
+        <option value="active">Активні</option>
+        <option value="done">Виконані</option>
       </select>
-      <label class="toggle">
-        <input type="checkbox" id="showDoneToggle" checked>
-        Показувати виконані
-      </label>
+
+      <span class="toolbar-label">Сортування</span>
+      <select id="sort-by">
+        <option value="date-asc">Спочатку нові дедлайни</option>
+        <option value="date-desc">Спочатку пізні дедлайни</option>
+        <option value="priority-desc">Найважливіші попереду</option>
+      </select>
     </div>
-    <button class="btn btn-primary" id="openAddBtn">+ Нове завдання</button>
+    <button class="btn btn-primary" id="toggle-form-btn">+ Нове завдання</button>
   </div>
 
-  <div id="formSlot"></div>
-  <div id="statusLine" class="status-line" style="display:none;"></div>
-  <div class="list" id="taskList"></div>
-  <div class="empty" id="emptyState" style="display:none;">
-    <strong>Поки немає завдань</strong>
-    Додайте першу картку, щоб почати планування.
-  </div>
-
-  <footer>
-    <button class="btn-text" id="resetBtn" style="color:var(--ink-faint);">Очистити всі збережені завдання</button>
-  </footer>
-</div>
-
-<script>
-(function(){
-  const STORAGE_KEY = 'task-checklist:tasks';
-  const listEl = document.getElementById('taskList');
-  const emptyEl = document.getElementById('emptyState');
-  const statusEl = document.getElementById('statusLine');
-  const countPill = document.getElementById('countPill');
-  const formSlot = document.getElementById('formSlot');
-  const openAddBtn = document.getElementById('openAddBtn');
-  const sortSelect = document.getElementById('sortSelect');
-  const showDoneToggle = document.getElementById('showDoneToggle');
-  const resetBtn = document.getElementById('resetBtn');
-
-  let tasks = [];
-  let editingId = null;   // id currently open in an edit form
-  let addOpen = false;
-  let ready = false;
-
-  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  const todayISO = () => new Date().toISOString().slice(0, 10);
-
-  const PRIORITY_LABELS = { low:'Низький', medium:'Середній', high:'Високий' };
-
-  function pluralUk(n, one, few, many){
-    const mod10 = n % 10, mod100 = n % 100;
-    if (mod10 === 1 && mod100 !== 11) return one;
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
-    return many;
-  }
-
-  function setStatus(msg){
-    if (!msg){ statusEl.style.display = 'none'; return; }
-    statusEl.textContent = msg;
-    statusEl.style.display = 'block';
-  }
-
-  /* ---------------- Persistence ---------------- */
-  async function loadTasks(){
-    setStatus('Завантаження завдань…');
-    try{
-      const result = await window.storage.get(STORAGE_KEY, false);
-      tasks = result && result.value ? JSON.parse(result.value) : [];
-    }catch(err){
-      tasks = []; // key doesn't exist yet — that's fine, start empty
-    }
-    ready = true;
-    setStatus('');
-    render();
-  }
-
-  async function saveTasks(){
-    try{
-      const result = await window.storage.set(STORAGE_KEY, JSON.stringify(tasks), false);
-      if (!result) console.error('Save returned no result');
-    }catch(err){
-      console.error('Storage error while saving tasks:', err);
-      setStatus('Не вдалося зберегти — остання зміна може не зберегтися.');
-      setTimeout(() => setStatus(''), 3000);
-    }
-  }
-
-  /* ---------------- Derived helpers ---------------- */
-  function dueState(task){
-    if (task.done) return 'done';
-    if (!task.deadline) return null;
-    const today = todayISO();
-    if (task.deadline < today) return 'overdue';
-    if (task.deadline === today) return 'today';
-    return 'ok';
-  }
-
-  function dueLabel(task){
-    if (!task.deadline) return null;
-    const state = dueState(task);
-    const formatted = formatShort(task.deadline);
-    if (state === 'done') return 'Дедлайн був ' + formatted;
-    if (state === 'overdue'){
-      const days = Math.round((new Date(todayISO()) - new Date(task.deadline + 'T00:00:00')) / 86400000);
-      return 'Прострочено на ' + days + ' ' + pluralUk(days, 'день', 'дні', 'днів');
-    }
-    if (state === 'today') return 'Дедлайн сьогодні';
-    const days = Math.round((new Date(task.deadline + 'T00:00:00') - new Date(todayISO())) / 86400000);
-    return 'Залишилось ' + days + ' ' + pluralUk(days, 'день', 'дні', 'днів');
-  }
-
-  const PRIORITY_RANK = { high:0, medium:1, low:2 };
-
-  function sortedVisibleTasks(){
-    let list = tasks.slice();
-    if (!showDoneToggle.checked) list = list.filter(t => !t.done);
-
-    const mode = sortSelect.value;
-    list.sort((a,b) => {
-      if (a.done !== b.done) return a.done ? 1 : -1; // done tasks sink regardless of sort mode
-      if (mode === 'priority') return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
-      if (mode === 'created') return a.createdAt - b.createdAt;
-      // deadline: tasks without a deadline go last
-      if (!a.deadline && !b.deadline) return 0;
-      if (!a.deadline) return 1;
-      if (!b.deadline) return -1;
-      return a.deadline.localeCompare(b.deadline);
-    });
-    return list;
-  }
-
-  /* ---------------- Rendering ---------------- */
-  function render(){
-    if (!ready) return;
-    countPill.textContent = tasks.length + ' ' + pluralUk(tasks.length, 'завдання', 'завдання', 'завдань');
-
-    renderForm();
-
-    const visible = sortedVisibleTasks();
-    listEl.innerHTML = '';
-    emptyEl.style.display = (tasks.length === 0) ? 'block' : 'none';
-
-    visible.forEach(task => {
-      if (task.id === editingId){
-        listEl.appendChild(buildEditCard(task));
-      } else {
-        listEl.appendChild(buildTaskCard(task));
-      }
-    });
-  }
-
-  function buildTaskCard(task){
-    const card = document.createElement('div');
-    card.className = 'task-card' + (task.done ? ' is-done' : '');
-    card.dataset.priority = task.priority;
-
-    const state = dueState(task);
-    const due = dueLabel(task);
-
-    card.innerHTML = `
-      <input type="checkbox" class="check" ${task.done ? 'checked' : ''} aria-label="Позначити завдання виконаним">
-      <div class="task-main">
-        <div class="task-top">
-          <div>
-            <div class="task-title"></div>
-            ${task.description ? '<div class="task-desc"></div>' : ''}
-          </div>
-          <div class="task-actions">
-            <button class="btn-text" data-action="edit">Редагувати</button>
-            <button class="btn-danger-text" data-action="delete">Видалити</button>
-          </div>
-        </div>
-        <div class="task-meta">
-          <span class="chip chip-priority" data-level="${task.priority}">${PRIORITY_LABELS[task.priority]}</span>
-          ${task.start ? `<span class="chip chip-date">Початок ${formatShort(task.start)}</span>` : ''}
-          ${due ? `<span class="chip chip-due" data-state="${state}">${due}</span>` : ''}
-        </div>
-      </div>
-    `;
-    card.querySelector('.task-title').textContent = task.title;
-    if (task.description) card.querySelector('.task-desc').textContent = task.description;
-
-    card.querySelector('.check').addEventListener('change', (e) => toggleDone(task.id, e.target.checked));
-    card.querySelector('[data-action="edit"]').addEventListener('click', () => { editingId = task.id; addOpen = false; render(); });
-    card.querySelector('[data-action="delete"]').addEventListener('click', () => deleteTask(task.id));
-    return card;
-  }
-
-  function formatShort(iso){
-    return new Date(iso + 'T00:00:00').toLocaleDateString('uk-UA', { month:'short', day:'numeric' });
-  }
-
-  /* ---------------- Add / Edit form ---------------- */
-  function renderForm(){
-    if (addOpen){
-      formSlot.innerHTML = '';
-      formSlot.appendChild(buildForm(null));
-    } else if (!editingId) {
-      formSlot.innerHTML = '';
-    }
-    // when editingId is set, its form renders inline in the list via buildEditCard
-  }
-
-  function buildEditCard(task){
-    const wrap = document.createElement('div');
-    wrap.appendChild(buildForm(task));
-    return wrap.firstElementChild;
-  }
-
-  function buildForm(task){
-    const isEdit = !!task;
-    const wrap = document.createElement('div');
-    wrap.className = 'task-form';
-
-    wrap.innerHTML = `
+  <!-- Form -->
+  <form class="task-form" id="task-form">
+    <input type="hidden" id="edit-task-id" value="">
+    <div class="form-error" id="form-error">Будь ласка, заповніть назву завдання та оберіть коректну дату.</div>
+    
+    <div class="form-grid">
       <div class="field full">
-        <label for="f-title-${task ? task.id : 'new'}">Назва</label>
-        <input type="text" id="f-title-${task ? task.id : 'new'}" placeholder="напр. Написати лист клієнту" maxlength="140">
-      </div>
-      <div class="form-error">Будь ласка, вкажіть назву завдання.</div>
-      <div class="field full">
-        <label for="f-desc-${task ? task.id : 'new'}">Опис (необовʼязково)</label>
-        <textarea id="f-desc-${task ? task.id : 'new'}" placeholder="Додаткові деталі…"></textarea>
-      </div>
-      <div class="form-grid">
-        <div class="field">
-          <label for="f-start-${task ? task.id : 'new'}">Дата початку</label>
-          <input type="date" id="f-start-${task ? task.id : 'new'}">
-        </div>
-        <div class="field">
-          <label for="f-deadline-${task ? task.id : 'new'}">Дедлайн</label>
-          <input type="date" id="f-deadline-${task ? task.id : 'new'}">
-        </div>
+        <label>Назва завдання *</label>
+        <input type="text" id="form-title" placeholder="Що потрібно зробити?" required>
       </div>
       <div class="field full">
-        <label>Пріоритет</label>
-        <div class="priority-picker">
-          <div class="priority-opt" data-level="low">Низький</div>
-          <div class="priority-opt" data-level="medium">Середній</div>
-          <div class="priority-opt" data-level="high">Високий</div>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost" data-action="cancel">Скасувати</button>
-        <button class="btn btn-primary" data-action="save">${isEdit ? 'Зберегти зміни' : 'Додати завдання'}</button>
-      </div>
-    `;
+        <label>Опис (необов'язково)</label>
+        <textarea id="form-desc" placeholder="Додайте деталі або нотатки..."></textarea>
 
-    const titleInput = wrap.querySelector(`#f-title-${task ? task.id : 'new'}`);
-    const descInput = wrap.querySelector(`#f-desc-${task ? task.id : 'new'}`);
-    const startInput = wrap.querySelector(`#f-start-${task ? task.id : 'new'}`);
-    const deadlineInput = wrap.querySelector(`#f-deadline-${task ? task.id : 'new'}`);
-    const errorEl = wrap.querySelector('.form-error');
-    const priorityOpts = wrap.querySelectorAll('.priority-opt');
-
-    let selectedPriority = task ? task.priority : 'medium';
-    function paintPriority(){
-      priorityOpts.forEach(opt => opt.dataset.active = (opt.dataset.level === selectedPriority) ? 'true' : 'false');
-    }
-    priorityOpts.forEach(opt => opt.addEventListener('click', () => { selectedPriority = opt.dataset.level; paintPriority(); }));
-    paintPriority();
-
-    if (task){
-      titleInput.value = task.title;
-      descInput.value = task.description || '';
-      startInput.value = task.start || '';
-      deadlineInput.value = task.deadline || '';
-    }
-
-    wrap.querySelector('[data-action="cancel"]').addEventListener('click', () => {
-      if (isEdit) editingId = null; else addOpen = false;
-      render();
-    });
-
-    wrap.querySelector('[data-action="save"]').addEventListener('click', () => {
-      const title = titleInput.value.trim();
-      if (!title){
-        errorEl.classList.add('is-visible');
-        titleInput.focus();
-        return;
-      }
-      errorEl.classList.remove('is-visible');
-
-      const payload = {
-        title,
-        description: descInput.value.trim(),
-        start: startInput.value || null,
-        deadline: deadlineInput.value || null,
-        priority: selectedPriority,
-      };
-
-      if (isEdit){
-        Object.assign(task, payload);
-        editingId = null;
-      } else {
-        tasks.push(Object.assign({ id: uid(), done:false, createdAt: Date.now() }, payload));
-        addOpen = false;
-      }
-      saveTasks();
-      render();
-    });
-
-    setTimeout(() => titleInput.focus(), 0);
-    return wrap;
-  }
-
-  /* ---------------- Actions ---------------- */
-  function toggleDone(id, done){
-    const t = tasks.find(t => t.id === id);
-    if (!t) return;
-    t.done = done;
-    saveTasks();
-    render();
-  }
-
-  function deleteTask(id){
-    tasks = tasks.filter(t => t.id !== id);
-    saveTasks();
-    render();
-  }
-
-  openAddBtn.addEventListener('click', () => {
-    editingId = null;
-    addOpen = !addOpen;
-    render();
-    if (addOpen){
-      formSlot.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    }
-  });
-
-  sortSelect.addEventListener('change', render);
-  showDoneToggle.addEventListener('change', render);
-
-  resetBtn.addEventListener('click', async () => {
-    if (!confirm('Видалити всі збережені завдання? Це неможливо скасувати.')) return;
-    tasks = [];
-    await saveTasks();
-    render();
-  });
-
-  loadTasks();
-})();
-
- // Функція для збереження завдань у пам'ять браузера
-  function saveTasks() {
-    const tasks = [];
-    // Припустимо, ваші завдання мають клас .task-item (або замініть на свій селектор)
-    document.querySelectorAll('.task-item').forEach(task => {
-      tasks.push({
-        text: task.innerText,
-        // якщо є чекбокс, можна зберігати його статус (checked)
-        done: task.classList.contains('done') 
-      });
-    });
-    localStorage.setItem('myChecklistTasks', JSON.stringify(tasks));
-  }
-
-  // Функція для завантаження завдань при відкритті сайту
-  function loadTasks() {
-    const saved = localStorage.getItem('myChecklistTasks');
-    if (saved) {
-      const tasks = JSON.parse(saved);
-      // Тут має бути код, який створює елементи на сторінці з масиву tasks
-      // Оскільки я не бачу весь ваш JS-код, логіку створення тасок треба інтегрувати у ваші існуючі функції
-    }
-  }
-
-  // Викликати loadTasks() при старті сторінки, а saveTasks() — щоразу, коли додаєте чи видаляєте таску
-  window.addEventListener('DOMContentLoaded', loadTasks);
   
 </script>
-</body>
-</html>
