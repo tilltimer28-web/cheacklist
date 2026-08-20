@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Дошка завдань</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-linear: linear-gradient(135deg, #0f0c1b 0%, #1a102f 50%, #0a0618 100%);
+    --surface:#171126;
+    --surface-2:#221a36;
+    --ink:#ECEEEC;
+    --ink-dim:#A59CB5;
+    --ink-faint:#766D85;
+    --line:#2E2445;
+    --line-soft:#281F3D;
+    --accent:#9B86FA;
+    --accent-ink:#0A0618;
+    --low:#57B788;
+    --med:#E0A83E;
+    --high:#E2645A;
+    --radius:12px;
+    --shadow:0 4px 20px rgba(0,0,0,.4), 0 8px 32px -12px rgba(11,6,24,.6);
+    /* --tap: minimum comfortable touch target per WCAG/iOS/Material guidance */
+    --tap:44px;
+    font-size:16px;
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  body{
+    margin:0; background: var(--bg-linear); color:var(--ink);
+    font-family:'Inter',sans-serif; line-height:1.5;
+    min-height:100vh; background-attachment: fixed;
+  }
+  .heading, h1, h2, .btn, .chip, .field label, .toolbar select, .toolbar-label{
+    font-family:'Space Grotesk',sans-serif;
+  }
+  svg{ display:block; }
+
+  /* ============================================================
+     MOBILE-FIRST BASE LAYOUT
+     Base rules below target small screens; desktop enhancements
+     live in the @media (min-width:640px) block further down.
+     ============================================================ */
+  .wrap{
+    max-width:840px; margin:0 auto;
+    padding:24px 16px 100px; /* extra bottom padding clears the mobile FAB */
+  }
+
+  /* ---------- Header ---------- */
+  header{ display:flex; flex-direction:column; gap:14px; margin-bottom:6px; }
+  .header-top{ display:flex; align-items:center; gap:12px; }
+  .header-icon{
+    /* Logo glyph gives the app an identifiable mark at a glance on small screens */
+    flex:0 0 auto; width:40px; height:40px; border-radius:11px;
+    background:linear-gradient(155deg, var(--accent), #6E58D6);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 14px rgba(155,134,250,.35);
+  }
+  .header-icon svg{ width:22px; height:22px; stroke:var(--accent-ink); }
+  h1{ font-size:24px; font-weight:700; letter-spacing:-.01em; margin:0; color:#fff; text-shadow:0 2px 10px rgba(155,134,250,.2); }
+  .subtitle{ color:var(--ink-dim); font-size:13px; margin-top:2px; }
+  .count-pill{
+    font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:600;
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:6px 12px; color:var(--ink-dim); white-space:nowrap;
+    display:inline-flex; align-items:center; gap:6px; width:fit-content;
+  }
+  .count-pill svg{ width:13px; height:13px; stroke:var(--accent); }
+
+  /* ---------- Stats / metrics card (new: turns task data into a visual) ---------- */
+  .stats-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px; margin:18px 0;
+    display:flex; flex-direction:column; gap:18px; align-items:center;
+  }
+  .stats-ring-wrap{ position:relative; width:120px; height:120px; flex:0 0 auto; }
+  .stats-ring{ width:120px; height:120px; transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--line-soft); stroke-width:10; }
+  .ring-progress{
+    fill:none; stroke:var(--accent); stroke-width:10; stroke-linecap:round;
+    stroke-dasharray:326.7; stroke-dashoffset:326.7;
+    transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);
+  }
+  .ring-label{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+  }
+  .ring-percent{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:#fff; }
+  .ring-caption{ font-size:11px; color:var(--ink-faint); margin-top:2px; }
+
+  .stats-breakdown{ width:100%; }
+  .breakdown-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600; margin-bottom:10px; }
+  .priority-bar{
+    display:flex; width:100%; height:10px; border-radius:20px; overflow:hidden;
+    background:var(--surface-2); margin-bottom:12px;
+  }
+  .priority-bar span{ height:100%; transition:width .5s ease; }
+  .priority-bar .seg-low{ background:var(--low); }
+  .priority-bar .seg-medium{ background:var(--med); }
+  .priority-bar .seg-high{ background:var(--high); }
+  .breakdown-legend{ display:flex; flex-wrap:wrap; gap:10px 16px; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); }
+  .legend-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+  .legend-dot.seg-low{ background:var(--low); }
+  .legend-dot.seg-medium{ background:var(--med); }
+  .legend-dot.seg-high{ background:var(--high); }
+
+  /* ---------- Toolbar (collapses into a compact filter panel on mobile) ---------- */
+  .toolbar{ margin:18px 0 16px; display:flex; flex-direction:column; gap:10px; }
+  .toolbar-row{ display:flex; gap:10px; }
+
+  .filter-toggle{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+    min-height:var(--tap);
+    background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    color:var(--ink-dim); font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;
+    cursor:pointer;
+  }
+  .filter-toggle svg{ width:16px; height:16px; stroke:currentColor; }
+  .filter-toggle[aria-expanded="true"]{ color:var(--ink); border-color:var(--ink-faint); }
+  .filter-toggle .chev{ transition:transform .2s ease; margin-left:2px; }
+  .filter-toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+
+  /* "New task" acts as a thumb-reachable floating button on small screens */
+  .btn-primary#toggle-form-btn{
+    position:fixed; right:18px; bottom:18px; z-index:20;
+    width:56px; height:56px; border-radius:50%; padding:0;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 24px rgba(155,134,250,.45), 0 2px 8px rgba(0,0,0,.4);
+  }
+  .btn-primary#toggle-form-btn svg{ width:24px; height:24px; }
+  .btn-primary#toggle-form-btn .btn-label{ display:none; }
+
+  .filter-panel{
+    display:none; flex-direction:column; gap:12px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; box-shadow:var(--shadow);
+  }
+  .filter-panel.is-open{ display:flex; }
+  .filter-field{ display:flex; flex-direction:column; gap:6px; }
+  .toolbar-label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600; }
+  .toolbar select{
+    appearance:none; -webkit-appearance:none;
+    width:100%; min-height:var(--tap);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:8px;
+    padding:10px 36px 10px 12px; font-size:14px; color:var(--ink); font-weight:600;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%239AA097' d='M5 7l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; cursor:pointer;
+  }
+  .toolbar select:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .btn{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px;
+    border-radius:8px; padding:10px 16px; border:1px solid transparent; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    min-height:var(--tap);
+    transition:transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); box-shadow:0 4px 12px rgba(155,134,250,.3); }
+  .btn-primary:hover{ background:#b3a3ff; }
+  .btn-ghost{ background:transparent; color:var(--ink-dim); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--ink-faint); color:var(--ink); }
+
+  /* Icon-only action buttons keep a 44x44 tap target while staying visually compact */
+  .icon-btn{
+    background:none; border:none; cursor:pointer; color:var(--ink-dim);
+    width:var(--tap); height:var(--tap); border-radius:8px;
+    display:inline-flex; align-items:center; justify-content:center;
+    flex:0 0 auto; transition:background .15s ease, color .15s ease;
+  }
+  .icon-btn svg{ width:18px; height:18px; stroke:currentColor; }
+  .icon-btn:hover{ background:var(--surface-2); color:var(--ink); }
+  .icon-btn.danger:hover{ background:rgba(226,100,90,.14); color:var(--high); }
+
+  /* ---------- Add / Edit form ---------- */
+  .task-form{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px; margin-bottom:16px; box-shadow:var(--shadow); display:none;
+  }
+  .task-form.is-visible{ display:block; }
+  .form-grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+  .field{ margin-bottom:0; }
+  .field.full{ grid-column:1 / -1; }
+  .field label{ display:block; font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:6px; }
+  .field input[type=text], .field input[type=date], .field select, .field textarea{
+    width:100%; min-height:var(--tap);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:7px;
+    padding:9px 11px; font-size:14px; font-family:'Inter',sans-serif; color:var(--ink);
+    color-scheme:dark;
+  }
+  .field textarea{ resize:vertical; min-height:64px; }
+  .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible{
+    outline:none; border-color:var(--accent); background:#292040;
+  }
+  .priority-picker{ display:flex; gap:8px; }
+  .priority-opt{
+    flex:1; text-align:center; padding:9px 6px; min-height:var(--tap);
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    border-radius:7px; border:1px solid var(--line);
+    background:var(--surface-2); font-size:12.5px; font-weight:600; cursor:pointer;
+    color:var(--ink-dim); transition:all .15s ease; user-select:none;
+  }
+  .priority-opt svg{ width:13px; height:13px; stroke:currentColor; }
+  .priority-opt[data-active="true"][data-level="low"]{ background:rgba(87,183,136,.16); border-color:var(--low); color:var(--low); }
+  .priority-opt[data-active="true"][data-level="medium"]{ background:rgba(224,168,62,.16); border-color:var(--med); color:var(--med); }
+  .priority-opt[data-active="true"][data-level="high"]{ background:rgba(226,100,90,.16); border-color:var(--high); color:var(--high); }
+  .form-actions{ display:flex; flex-direction:column-reverse; gap:10px; margin-top:16px; }
+  .form-actions .btn{ width:100%; }
+  .form-error{ color:var(--high); font-size:12.5px; margin-top:-4px; margin-bottom:14px; display:none; align-items:center; gap:6px; }
+  .form-error.is-visible{ display:flex; }
+  .form-error svg{ width:14px; height:14px; stroke:currentColor; flex:0 0 auto; }
+
+  /* ---------- Task list ---------- */
+  .list{ display:flex; flex-direction:column; gap:10px; }
+  .task-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; box-shadow:var(--shadow);
+    display:flex; gap:10px; align-items:flex-start;
+    border-left:4px solid var(--line);
+  }
+  .task-card[data-priority="low"]{ border-left-color:var(--low); }
+  .task-card[data-priority="medium"]{ border-left-color:var(--med); }
+  .task-card[data-priority="high"]{ border-left-color:var(--high); }
+  .task-card.is-done{ opacity:.45; }
+  .task-card.is-done .task-title{ text-decoration:line-through; color:var(--ink-dim); }
+
+  /* Custom checkbox: visual box stays small, tappable hit-area meets 44x44 */
+  .check-hit{
+    flex:0 0 auto; width:var(--tap); height:var(--tap); margin:-12px -4px -12px -12px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .check{ width:20px; height:20px; accent-color:var(--accent); cursor:pointer; }
+
+  .task-main{ flex:1; min-width:0; }
+  .task-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .task-title{ font-weight:600; font-size:15px; word-break:break-word; }
+  .task-desc{ color:var(--ink-dim); font-size:13.5px; margin-top:4px; line-height:1.55; word-break:break-word; }
+  .task-meta{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+
+  .chip{ font-size:11.5px; font-weight:600; padding:4px 9px; border-radius:20px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
+  .chip svg{ width:11px; height:11px; stroke:currentColor; }
+  .chip-priority[data-level="low"]{ background:rgba(87,183,136,.16); color:var(--low); }
+  .chip-priority[data-level="medium"]{ background:rgba(224,168,62,.16); color:var(--med); }
+  .chip-priority[data-level="high"]{ background:rgba(226,100,90,.16); color:var(--high); }
+  .chip-date{ background:var(--surface-2); color:var(--ink-dim); border:1px solid var(--line-soft); font-family:'Inter',sans-serif; font-weight:500; }
+  .chip-due{ font-family:'Inter',sans-serif; font-weight:600; }
+  .chip-due[data-state="overdue"]{ background:rgba(226,100,90,.16); color:var(--high); }
+  .chip-due[data-state="today"]{ background:rgba(224,168,62,.18); color:var(--med); }
+  .chip-due[data-state="ok"]{ background:var(--surface-2); color:var(--ink-dim); border:1px solid var(--line-soft); }
+  .chip-due[data-state="done"]{ background:var(--surface-2); color:var(--ink-faint); border:1px solid var(--line-soft); }
+
+  .task-actions{ display:flex; gap:2px; flex:0 0 auto; margin:-10px -8px -10px 0; }
+
+  /* ---------- Empty state (SVG illustration instead of a generic stock photo,
+     since a literal photograph doesn't suit a personal task-manager empty state) ---------- */
+  .empty{
+    text-align:center; padding:48px 20px; color:var(--ink-dim);
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  }
+  .empty svg{ width:64px; height:64px; margin:0 auto 14px; stroke:var(--ink-faint); }
+  .empty-title{ color:var(--ink); font-weight:600; font-size:15px; margin-bottom:4px; font-family:'Space Grotesk',sans-serif; }
+  .empty-text{ font-size:13.5px; max-width:280px; margin:0 auto; }
+
+  @media (prefers-reduced-motion: reduce){
+    .ring-progress, .priority-bar span, .btn, .icon-btn{ transition:none; }
+  }
+
+  /* ============================================================
+     DESKTOP / WIDER-VIEWPORT ENHANCEMENTS (progressive, not a
+     separate layout — mobile styles above remain the foundation)
+     ============================================================ */
+  @media (min-width:640px){
+    .wrap{ padding:48px 24px 80px; }
+
+    .header-top{ align-items:flex-end; }
+    header{ flex-direction:row; align-items:flex-end; justify-content:space-between; gap:20px; }
+    .header-left{ display:flex; align-items:center; gap:14px; }
+    h1{ font-size:30px; }
+    .subtitle{ font-size:14px; }
+
+    .stats-card{ flex-direction:row; align-items:center; text-align:left; }
+    .breakdown-legend{ gap:16px; }
+
+    .toolbar{ flex-direction:row; align-items:center; justify-content:space-between; }
+    .toolbar-row{ flex:1; }
+    .filter-toggle{ display:none; } /* filters are always visible inline, so the toggle is redundant */
+    .filter-panel{
+      display:flex !important; flex-direction:row; align-items:center; gap:14px;
+      background:none; border:none; box-shadow:none; padding:0; flex:1;
+    }
+    .filter-field{ flex-direction:row; align-items:center; gap:10px; }
+    .toolbar select{ width:auto; min-width:0; }
+
+    .btn-primary#toggle-form-btn{
+      position:static; width:auto; height:var(--tap); border-radius:8px; padding:10px 18px;
+      box-shadow:0 4px 12px rgba(155,134,250,.3);
+    }
+    .btn-primary#toggle-form-btn svg{ width:16px; height:16px; }
+    .btn-primary#toggle-form-btn .btn-label{ display:inline; }
+
+    .form-grid{ grid-template-columns:1fr 1fr; }
+    .form-actions{ flex-direction:row; justify-content:flex-end; }
+    .form-actions .btn{ width:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="header-top header-left">
+      <div class="header-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div>
+        <h1>Дошка завдань</h1>
+        <div class="subtitle">Ваш персональний менеджер списків та справ</div>
+      </div>
+    </div>
+    <div class="count-pill" id="task-counter">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Завдань: 0
+    </div>
+  </header>
+
+  <!-- Stats card: turns raw task data into a visual (SVG donut + segmented priority bar) -->
+  <section class="stats-card" id="stats-card" aria-label="Статистика завдань">
+    <div class="stats-ring-wrap">
+      <svg class="stats-ring" viewBox="0 0 120 120" role="img" aria-labelledby="ring-percent-title">
+        <title id="ring-percent-title">Відсоток виконаних завдань</title>
+        <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+        <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="52"></circle>
+      </svg>
+      <div class="ring-label">
+        <span class="ring-percent" id="ring-percent">0%</span>
+        <span class="ring-caption">виконано</span>
+      </div>
+    </div>
+    <div class="stats-breakdown">
+      <div class="breakdown-title">Активні завдання за пріоритетом</div>
+      <div class="priority-bar" id="priority-bar" role="img" aria-label="Розподіл активних завдань за пріоритетом"></div>
+      <div class="breakdown-legend" id="breakdown-legend"></div>
+    </div>
+  </section>
+
+  <!-- Toolbar: mobile shows a single "Фільтри" toggle that expands a panel;
+       the @media block above turns this back into an inline row on desktop -->
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <button class="filter-toggle" id="filter-toggle-btn" aria-expanded="false" aria-controls="filter-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Фільтри та сортування
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="filter-panel" id="filter-panel">
+      <div class="filter-field">
+        <span class="toolbar-label">Фільтр</span>
+        <select id="filter-status">
+          <option value="all">Усі завдання</option>
+          <option value="active">Активні</option>
+          <option value="done">Виконані</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <span class="toolbar-label">Сортування</span>
+        <select id="sort-by">
+          <option value="date-asc">Спочатку нові дедлайни</option>
+          <option value="date-desc">Спочатку пізні дедлайни</option>
+          <option value="priority-desc">Найважливіші попереду</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Fixed floating button on mobile (see .btn-primary#toggle-form-btn), inline button on desktop -->
+    <button class="btn btn-primary" id="toggle-form-btn" aria-label="Нове завдання">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span class="btn-label">Нове завдання</span>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <form class="task-form" id="task-form">
+    <input type="hidden" id="edit-task-id" value="">
+    <div class="form-error" id="form-error">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      Будь ласка, заповніть назву завдання та оберіть коректну дату.
+    </div>
+
+    <div class="form-grid">
+      <div class="field full">
+        <label>Назва завдання *</label>
+        <input type="text" id="form-title" placeholder="Що потрібно зробити?" required>
+      </div>
+      <div class="field full">
+        <label>Опис (необов'язково)</label>
+        <textarea id="form-desc" placeholder="Додайте деталі або нотатки..."></textarea>
+      </div>
+      <div class="field">
+        <label>Кінцевий термін *</label>
+        <input type="date" id="form-date" required>
+      </div>
+      <div class="field">
+        <label>Пріоритет</label>
+        <div class="priority-picker">
+          <div class="priority-opt" data-level="low" data-active="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            Низький
+          </div>
+          <div class="priority-opt" data-level="medium" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>
+            Середній
+          </div>
+          <div class="priority-opt" data-level="high" data-active="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            Високий
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="cancel-form-btn">Скасувати</button>
+      <button type="submit" class="btn btn-primary" id="submit-form-btn">Зберегти</button>
+    </div>
+  </form>
+
+  <div class="list" id="task-list"></div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem('checklist_tasks')) || [];
+  let currentPriority = 'low';
+
+  const taskList = document.getElementById('task-list');
+  const taskForm = document.getElementById('task-form');
+  const toggleFormBtn = document.getElementById('toggle-form-btn');
+  const cancelFormBtn = document.getElementById('cancel-form-btn');
+  const submitFormBtn = document.getElementById('submit-form-btn');
+  const taskCounter = document.getElementById('task-counter');
+  const formError = document.getElementById('form-error');
+
+  const formTitle = document.getElementById('form-title');
+  const formDesc = document.getElementById('form-desc');
+  const formDate = document.getElementById('form-date');
+  const editTaskId = document.getElementById('edit-task-id');
+  const priorityOpts = document.querySelectorAll('.priority-opt');
+
+  const filterStatus = document.getElementById('filter-status');
+  const sortBy = document.getElementById('sort-by');
+
+  // New: mobile filter panel toggle (the "hamburger" analogue for this toolbar)
+  const filterToggleBtn = document.getElementById('filter-toggle-btn');
+  const filterPanel = document.getElementById('filter-panel');
+
+  // New: stats/chart elements
+  const ringProgress = document.getElementById('ring-progress');
+  const ringPercent = document.getElementById('ring-percent');
+  const priorityBar = document.getElementById('priority-bar');
+  const breakdownLegend = document.getElementById('breakdown-legend');
+  const RING_CIRCUMFERENCE = 2 * Math.PI * 52;
+
+  const ICONS = {
+    calendar: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h13l-3 4 3 4H5"/></svg>',
+    pencil: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>'
+  };
+
+  formDate.value = new Date().toISOString().split('T')[0];
+
+  priorityOpts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      priorityOpts.forEach(o => o.setAttribute('data-active', 'false'));
+      opt.setAttribute('data-active', 'true');
+      currentPriority = opt.getAttribute('data-level');
+    });
+  });
+
+  function setPriorityInForm(level) {
+    priorityOpts.forEach(o => {
+      if(o.getAttribute('data-level') === level) {
+        o.setAttribute('data-active', 'true');
+        currentPriority = level;
+      } else {
+        o.setAttribute('data-active', 'false');
+      }
+    });
+  }
+
+  toggleFormBtn.addEventListener('click', () => {
+    taskForm.classList.toggle('is-visible');
+    if(taskForm.classList.contains('is-visible')) {
+      resetForm();
+      taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  cancelFormBtn.addEventListener('click', () => {
+    taskForm.classList.remove('is-visible');
+    resetForm();
+  });
+
+  // Mobile filter panel toggle
+  filterToggleBtn.addEventListener('click', () => {
+    const isOpen = filterPanel.classList.toggle('is-open');
+    filterToggleBtn.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  function resetForm() {
+    formTitle.value = '';
+    formDesc.value = '';
+    formDate.value = new Date().toISOString().split('T')[0];
+    editTaskId.value = '';
+    setPriorityInForm('low');
+    submitFormBtn.innerText = 'Зберегти';
+    formError.classList.remove('is-visible');
+  }
+
+  function saveToLocalStorage() {
+    localStorage.setItem('checklist_tasks', JSON.stringify(tasks));
+    updateCounter();
+    updateStats();
+  }
+
+  function updateCounter() {
+    const activeTasks = tasks.filter(t => !t.done).length;
+    taskCounter.innerHTML = `${ICONS.clock} Завдань залишилось: ${activeTasks}`;
+  }
+
+  // New: computes completion % (ring) and active-task priority split (segmented bar)
+  function updateStats() {
+    const total = tasks.length;
+    const doneCount = tasks.filter(t => t.done).length;
+    const percent = total === 0 ? 0 : Math.round((doneCount / total) * 100);
+
+    const offset = RING_CIRCUMFERENCE * (1 - percent / 100);
+    ringProgress.style.strokeDashoffset = total === 0 ? RING_CIRCUMFERENCE : offset;
+    ringPercent.textContent = `${percent}%`;
+
+    const active = tasks.filter(t => !t.done);
+    const counts = { low: 0, medium: 0, high: 0 };
+    active.forEach(t => { counts[t.priority] = (counts[t.priority] || 0) + 1; });
+    const activeTotal = active.length || 1;
+
+    priorityBar.innerHTML = `
+      <span class="seg-low" style="width:${(counts.low / activeTotal) * 100}%"></span>
+      <span class="seg-medium" style="width:${(counts.medium / activeTotal) * 100}%"></span>
+      <span class="seg-high" style="width:${(counts.high / activeTotal) * 100}%"></span>
+    `;
+
+    breakdownLegend.innerHTML = `
+      <span class="legend-item"><span class="legend-dot seg-low"></span>Низький: ${counts.low}</span>
+      <span class="legend-item"><span class="legend-dot seg-medium"></span>Середній: ${counts.medium}</span>
+      <span class="legend-item"><span class="legend-dot seg-high"></span>Високий: ${counts.high}</span>
+    `;
+  }
+
+  taskForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!formTitle.value.trim() || !formDate.value) {
+      formError.classList.add('is-visible');
+      return;
+    }
+    formError.classList.remove('is-visible');
+
+    if (editTaskId.value) {
+      const taskIndex = tasks.findIndex(t => t.id === editTaskId.value);
+      if (taskIndex !== -1) {
+        tasks[taskIndex].title = formTitle.value.trim();
+        tasks[taskIndex].desc = formDesc.value.trim();
+        tasks[taskIndex].date = formDate.value;
+        tasks[taskIndex].priority = currentPriority;
+      }
+    } else {
+      const newTask = {
+        id: Date.now().toString(),
+        title: formTitle.value.trim(),
+        desc: formDesc.value.trim(),
+        date: formDate.value,
+        priority: currentPriority,
+        done: false
+      };
+      tasks.push(newTask);
+    }
+
+    saveToLocalStorage();
+    resetForm();
+    taskForm.classList.remove('is-visible');
+    renderTasks();
+  });
+
+  function getDueState(dateStr, isDone) {
+    if (isDone) return { text: 'Виконано', state: 'done' };
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0,0,0,0);
+
+    const diffTime = targetDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return { text: 'Прострочено', state: 'overdue' };
+    if (diffDays === 0) return { text: 'Сьогодні', state: 'today' };
+    if (diffDays === 1) return { text: 'Завтра', state: 'ok' };
+
+    let dayWord = 'днів';
+    const lastDigit = diffDays % 10;
+    const lastTwoDigits = diffDays % 100;
+
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+      dayWord = 'день';
+    } else if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) {
+      dayWord = 'дні';
+    }
+
+    return { text: `Залишилось ${diffDays} ${dayWord}`, state: 'ok' };
+  }
+
+  const priorityLabels = { low: 'Низький', medium: 'Середній', high: 'Високий' };
+
+  function renderTasks() {
+    taskList.innerHTML = '';
+
+    let filteredTasks = tasks.filter(task => {
+      if (filterStatus.value === 'active') return !task.done;
+      if (filterStatus.value === 'done') return task.done;
+      return true;
+    });
+
+    filteredTasks.sort((a, b) => {
+      if (sortBy.value === 'date-asc') return new Date(a.date) - new Date(b.date);
+      if (sortBy.value === 'date-desc') return new Date(b.date) - new Date(a.date);
+      if (sortBy.value === 'priority-desc') {
+        const priorityWeight = { high: 3, medium: 2, low: 1 };
+        return priorityWeight[b.priority] - priorityWeight[a.priority];
+      }
+      return 0;
+    });
+
+    if (filteredTasks.length === 0) {
+      taskList.innerHTML = `
+        <div class="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M9 3v4M15 3v4M4 11h16"/><path d="M9 15l2 2 4-4"/></svg>
+          <div class="empty-title">Тут поки що порожньо</div>
+          <div class="empty-text">Наразі немає завдань у цій категорії. Натисніть кнопку «+», щоб додати нове.</div>
+        </div>`;
+      return;
+    }
+
+    filteredTasks.forEach(task => {
+      const dueInfo = getDueState(task.date, task.done);
+
+      const card = document.createElement('div');
+      card.className = `task-card ${task.done ? 'is-done' : ''}`;
+      card.setAttribute('data-priority', task.priority);
+
+      card.innerHTML = `
+        <label class="check-hit">
+          <input type="checkbox" class="check" ${task.done ? 'checked' : ''}>
+        </label>
+        <div class="task-main">
+          <div class="task-top">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+          </div>
+          ${task.desc ? `<div class="task-desc">${escapeHtml(task.desc)}</div>` : ''}
+          <div class="task-meta">
+            <span class="chip chip-priority" data-level="${task.priority}">${ICONS.flag}${priorityLabels[task.priority]}</span>
+            <span class="chip chip-date">${ICONS.calendar}${formatDate(task.date)}</span>
+            <span class="chip chip-due" data-state="${dueInfo.state}">${dueInfo.text}</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="icon-btn edit-btn" title="Редагувати" aria-label="Редагувати завдання">${ICONS.pencil}</button>
+          <button class="icon-btn danger delete-btn" title="Видалити" aria-label="Видалити завдання">${ICONS.trash}</button>
+        </div>
+      `;
+
+      const checkbox = card.querySelector('.check');
+      checkbox.addEventListener('change', () => {
+        task.done = checkbox.checked;
+        saveToLocalStorage();
+        renderTasks();
+      });
+
+      card.querySelector('.delete-btn').addEventListener('click', () => {
+        tasks = tasks.filter(t => t.id !== task.id);
+        saveToLocalStorage();
+        renderTasks();
+      });
+
+      card.querySelector('.edit-btn').addEventListener('click', () => {
+        taskForm.classList.add('is-visible');
+        editTaskId.value = task.id;
+        formTitle.value = task.title;
+        formDesc.value = task.desc;
+        formDate.value = task.date;
+        setPriorityInForm(task.priority);
+        submitFormBtn.innerText = 'Оновити завдання';
+        taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      taskList.appendChild(card);
+    });
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    if(isNaN(d)) return dateStr;
+    return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
+  }
+
+  filterStatus.addEventListener('change', renderTasks);
+  sortBy.addEventListener('change', renderTasks);
+
+  updateCounter();
+  updateStats();
+  renderTasks();
+</script>
+</body>
+</html>
