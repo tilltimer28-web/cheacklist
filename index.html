@@ -520,6 +520,34 @@
 
   loadTasks();
 })();
+
+ // Функція для збереження завдань у пам'ять браузера
+  function saveTasks() {
+    const tasks = [];
+    // Припустимо, ваші завдання мають клас .task-item (або замініть на свій селектор)
+    document.querySelectorAll('.task-item').forEach(task => {
+      tasks.push({
+        text: task.innerText,
+        // якщо є чекбокс, можна зберігати його статус (checked)
+        done: task.classList.contains('done') 
+      });
+    });
+    localStorage.setItem('myChecklistTasks', JSON.stringify(tasks));
+  }
+
+  // Функція для завантаження завдань при відкритті сайту
+  function loadTasks() {
+    const saved = localStorage.getItem('myChecklistTasks');
+    if (saved) {
+      const tasks = JSON.parse(saved);
+      // Тут має бути код, який створює елементи на сторінці з масиву tasks
+      // Оскільки я не бачу весь ваш JS-код, логіку створення тасок треба інтегрувати у ваші існуючі функції
+    }
+  }
+
+  // Викликати loadTasks() при старті сторінки, а saveTasks() — щоразу, коли додаєте чи видаляєте таску
+  window.addEventListener('DOMContentLoaded', loadTasks);
+  
 </script>
 </body>
 </html>
